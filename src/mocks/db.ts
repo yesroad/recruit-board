@@ -3,20 +3,18 @@ import { createSeed } from '@/mocks/seed'
 
 const STORAGE_KEY = 'recruit-board/candidates'
 
-let cache: Candidate[] | null = null
-
-function persist(): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(cache))
+function persist(candidates: Candidate[]): void {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(candidates))
 }
 
 function load(): Candidate[] {
-  if (cache) return cache
-
   const stored = localStorage.getItem(STORAGE_KEY)
-  cache = stored ? (JSON.parse(stored) as Candidate[]) : createSeed()
-  if (!stored) persist()
+  if (stored) return JSON.parse(stored) as Candidate[]
 
-  return cache
+  const seeded = createSeed()
+  persist(seeded)
+
+  return seeded
 }
 
 export function listCandidates(): Candidate[] {
@@ -34,12 +32,11 @@ export function moveCandidate(id: string, toStage: Stage): Candidate | undefined
 
   const moved = { ...candidates[index], stage: toStage }
   candidates[index] = moved
-  persist()
+  persist(candidates)
 
   return moved
 }
 
 export function resetDb(): void {
-  cache = createSeed()
-  persist()
+  persist(createSeed())
 }
