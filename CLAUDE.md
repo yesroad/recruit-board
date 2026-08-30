@@ -23,7 +23,7 @@ detail-panel  loading-error-empty  a11y-keyboard  race-condition  undo  virtuali
 ```
 
 커밋 scope와 PROMPTS.md 섹션 제목이 이 이름으로 일치한다.
-기능이 아닌 변경은 scope 없이 `chore:`.
+기능이 아닌 변경은 scope를 생략한다 — `chore:` `docs:`.
 진행하며 쪼개거나 합칠 수 있다. 바꿨으면 이 목록도 함께 고친다.
 
 ## 작업 루프
