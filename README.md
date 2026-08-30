@@ -4,6 +4,8 @@
 
 **제출자: 김응길**
 
+**배포: https://recruit-board-six.vercel.app/**
+
 ---
 
 ## 실행 방법
@@ -66,10 +68,12 @@ pnpm lint    # eslint
 | `fetchFailRate` | 조회 실패율 | `?fetchFailRate=1` 이면 에러 화면 |
 | `moveFailRate` | 이동 실패율 | `?moveFailRate=1` 이면 롤백 확인 |
 
+배포 링크에 그대로 붙여 확인할 수 있습니다.
+
 ```
-http://localhost:5173/?moveFailRate=1      단계 이동이 항상 실패, 롤백 동작 확인
-http://localhost:5173/?fetchFailRate=1     조회가 항상 실패, 에러 화면과 재시도 확인
-http://localhost:5173/?delay=0             지연 없이 빠르게 조작
+https://recruit-board-six.vercel.app/?moveFailRate=1     이동이 항상 실패, 롤백 확인
+https://recruit-board-six.vercel.app/?fetchFailRate=1    조회가 항상 실패, 에러 화면과 재시도 확인
+https://recruit-board-six.vercel.app/?delay=0            지연 없이 빠르게 조작
 ```
 
 읽기와 쓰기 실패율을 분리한 이유는 조회는 정상인데 이동만 실패하는 상황을 만들어야
