@@ -16,3 +16,11 @@ export const STAGE_DOT_CLASS: Record<Stage, string> = {
   hired: 'bg-stage-hired',
   rejected: 'bg-stage-rejected',
 }
+
+export const STAGE_BADGE_CLASS: Record<Stage, string> = {
+  screening: 'bg-stage-screening-soft text-stage-screening-strong',
+  interview: 'bg-stage-interview-soft text-stage-interview-strong',
+  offer: 'bg-stage-offer-soft text-stage-offer-strong',
+  hired: 'bg-stage-hired-soft text-stage-hired-strong',
+  rejected: 'bg-stage-rejected-soft text-stage-rejected-strong',
+}

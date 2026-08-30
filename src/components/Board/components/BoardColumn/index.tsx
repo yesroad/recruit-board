@@ -1,4 +1,5 @@
 import { STAGE_DOT_CLASS, STAGE_LABELS } from '@/constants/candidate'
+import { CandidateCard } from '../CandidateCard'
 import type { Candidate, Stage } from '@/types/candidate'
 
 interface BoardColumnProps {
@@ -32,9 +33,8 @@ export function BoardColumn({ stage, candidates }: BoardColumnProps) {
             key={candidate.id}
             data-index={index}
             data-candidate-id={candidate.id}
-            className="truncate rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
           >
-            {candidate.name}
+            <CandidateCard candidate={candidate} />
           </li>
         ))}
       </ul>
