@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
 import App from '@/App.tsx'
+import QueryProvider from '@/providers/queryProvider'
 import './index.css'
 
 async function start() {
@@ -10,7 +11,9 @@ async function start() {
 
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
-      <App />
+      <QueryProvider>
+        <App />
+      </QueryProvider>
     </StrictMode>,
   )
 }
