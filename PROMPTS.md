@@ -10,7 +10,7 @@ tailwindcss v4, react-query, msw, vitest, react-virtual 등 필요한 의존성 
 
 ### AI 출력 요지
 
-의존성 설치와 Vite·Vitest·Tailwind·ESLint 연결. 판단 두 가지가 들어갔다.
+의존성 설치와 Vite, Vitest, Tailwind, ESLint 연결. 판단 두 가지가 들어갔다.
 
 - `test` 스크립트를 `vitest run`으로 고정하고 워치는 `test:watch`로 분리했다.
 워치 모드면 커밋 게이트가 응답을 기다리며 멈춘다.
@@ -36,7 +36,7 @@ tailwindcss v4, react-query, msw, vitest, react-virtual 등 필요한 의존성 
 
 ---
 
-## [mock-api] 지연·실패를 시뮬레이션하는 mock API
+## [mock-api] 지연, 실패를 시뮬레이션하는 mock API
 
 ### 프롬프트 1
 
@@ -63,7 +63,7 @@ MSW 핸들러 3개와 localStorage 저장소. 설계 판단 세 가지가 들어
   - 지연과 실패 동작은 실제로 실행해 확인했다. 지연 표본 min 200.8 / max 797.8ms,
   `moveFailRate:1` PATCH 시 500 응답 후 저장소 불변
 - 채택 / 수정 / 기각
-  - 수정. 테스트 기준선을 지연 0·실패율 0으로 잡았다. mock 기본값은 건드리지 않아
+  - 수정. 테스트 기준선을 지연 0, 실패율 0으로 잡았다. mock 기본값은 건드리지 않아
   "실패율을 낮추지 않는다"와 충돌하지 않는다
   - 채택. 도달 불가인 `typeof location` 분기를 삭제했다
   - 보류. 스키마 버전과 응답의 순서 판별 수단은 `race-condition`에서 `version`을 추가할 때 함께 본다.
@@ -101,7 +101,7 @@ code-reviewer 지적 중 캐시 버그부터 테스트로 재현하자
 - 어떻게 고쳤나
   - `load()`가 매번 localStorage를 읽는다. 부수적으로 내부 배열 참조 유출도 사라졌다
 
-## [services] 지원자 API 서비스·쿼리 레이어
+## [services] 지원자 API 서비스, 쿼리 레이어
 
 ### 프롬프트 1
 
@@ -169,8 +169,8 @@ P1 3건을 probe 테스트로 재현한 뒤 수정.
 
 ### AI 출력 요지
 
-받아둔 자료의 토큰을 `@theme` 으로 옮겼다 — 단계 전경 5·배지 배경 5·상태 4,
-애니메이션 2(`--animate-shake`/`--animate-shimmer`), 한글 폰트 스택·`keep-all`·reduced-motion 가드.
+받아둔 자료의 토큰을 `@theme` 으로 옮겼다 - 단계 전경 5, 배지 배경 5, 상태 4,
+애니메이션 2(`--animate-shake`/`--animate-shimmer`), 한글 폰트 스택, `keep-all`, reduced-motion 가드.
 
 ### 리뷰 / 검증
 
@@ -182,18 +182,18 @@ P1 3건을 probe 테스트로 재현한 뒤 수정.
   - 초안이 받은 자료를 "확정안"으로 읽어, 이번에 내리지도 않은 색 선택 근거를 기록에 썼다
 - 어떻게 알아챘나
   - 임시 프로브에 새 유틸리티를 나열해 `vite build` 후 `dist/assets/index-*.css` 를 grep.
-  팔레트 변수 15개가 전부 `:root` 에 oklch 값으로 나왔고 유틸리티·`@keyframes` 도 생성됐다
+  팔레트 변수 15개가 전부 `:root` 에 oklch 값으로 나왔고 유틸리티, `@keyframes` 도 생성됐다
   - 에이전트가 센 14/16 은 `@theme` 블록만 세어 `body` 의 `slate-50`·`slate-900` 을 빠뜨린 값이다.
   빌드 산출물과 distinct 참조 수가 둘 다 15로 일치한다
 - 채택 / 수정 / 기각
-  - 기각. mockup 의 `:focus-visible { border-radius: 4px }` — 모든 포커스 요소에 걸려
+  - 기각. mockup 의 `:focus-visible { border-radius: 4px }` - 모든 포커스 요소에 걸려
   알약 모양 필터 칩 모서리가 각진다
-  - 기각. mockup 의 `--radius`·`shadow`·`skeleton` 변수 — Tailwind 기본 유틸리티로 충분하다
+  - 기각. mockup 의 `--radius`·`shadow`·`skeleton` 변수 - Tailwind 기본 유틸리티로 충분하다
   - 수정. 색 선택 근거를 기록에서 걷어냈다. 옮겨 적은 것뿐이고 이번에 내린 설계 결정은 없다
 - 어떻게 고쳤나
-  - `index.css` 안의 스캐폴드 규칙(`#root` 고정폭·`h1`·다크모드)과 `App.css`·데모 이미지
-  3개·`public/icons.svg` 를 지우고 `App.tsx` 를 최소 placeholder 로 바꿨다
-  - 게이트 — `tsc -b` 0, `eslint .` 0, `vite build` 성공, 테스트 17/17
+  - `index.css` 안의 스캐폴드 규칙(`#root` 고정폭, `h1`, 다크모드)과 `App.css`, 데모 이미지
+  3개, `public/icons.svg` 를 지우고 `App.tsx` 를 최소 placeholder 로 바꿨다
+  - 게이트 - `tsc -b` 0, `eslint .` 0, `vite build` 성공, 테스트 17/17
 
 ### 프롬프트 2
 
@@ -652,7 +652,7 @@ loading-error-empty 계획 생성하고 진행해
 ### AI 출력 요지
 
 보드 레벨에서 "데이터 0건"(`filter.total === 0`)과 "필터 결과 0건"(`filter.matched === 0`)을
-구분하고, 컬럼 레벨은 필터 활성 여부로 문구만 다른 빈 상태를 뒀다. `BoardSkeleton`·`BoardError`·
+구분하고, 컬럼 레벨은 필터 활성 여부로 문구만 다른 빈 상태를 뒀다. `BoardSkeleton`·`BoardError`, 
 `BoardEmptyFilter`·`ColumnEmpty` 4개를 새로 만들고 `useBoard`에 `refetch`/`isFiltered`/`resetFilter`를
 추가했다. 공유 `states/` 폴더 대신 각자 소유 컴포넌트 하위(`Board/components`, `BoardColumn/components`)에 뒀다.
 
@@ -699,3 +699,41 @@ loading-error-empty 계획 생성하고 진행해
   - `DetailPanelSkeleton`, `DetailPanelError`를 신설해 로딩, 에러 상태에서도 닫기(X) 버튼이 보이게 했다
   - `PanelHeader`, `PanelBody`의 `isPending`, `isError` prop을 제거했다. Suspense와 ErrorBoundary가
   분기를 대신해 `candidate`가 항상 보장된 값으로 들어온다
+
+---
+
+## [a11y-keyboard] 키보드만으로 단계 이동·상세 열람
+
+### 프롬프트 1
+
+```
+a11y-keyboard 다음 작업 진행하자
+```
+
+### AI 출력 요지
+
+카드 1,000장 x 버튼 1~4개라 Tab만으로 하단 컬럼 도달이 불가능한 문제를 roving tabindex로 풀고,
+DetailPanel에 실제 포커스 트랩과 배경 격리를 추가했다. 컬럼 안에서 ArrowDown/Up/Home/End로 카드 간
+이동, 활성 카드만 tabIndex 0을 갖는다. useFocusTrap 훅으로 패널 안 Tab 순환을 만들고, React 19의
+inert boolean prop으로 패널이 열리면 배경을 선언적으로 잠근다.
+
+### 리뷰 / 검증
+
+- 무엇이 문제였나
+  - 처음 짠 roving tabindex 초안이 el.tabIndex를 직접 대입하고 querySelectorAll로 배선하는
+    raw DOM 조작이었다
+  - useCandidateList 초안이 effect 안에서 setState하는 패턴이었다
+- 어떻게 알아챘나
+  - "리엑트스럽게 작업해야해" 라는 지적. CandidateCard가 이미 memo로 감싸져 있다는 걸
+    놓치고 있었다
+  - 재현. pnpm lint가 react-hooks/set-state-in-effect 규칙으로 실제로 잡아냈다
+- 채택 / 수정 / 기각
+  - 수정. isActive를 state+prop으로 관리해 memo가 이전/새 활성 카드 두 장만 리렌더시키게
+    바꿨다. registerTrigger 콜백도 카드마다 새로 만들면 memo가 깨져서 id별로 콜백을
+    캐싱하는 getTriggerRef로 바꿨다
+  - 수정. activeId를 effect+setState 대신 렌더 중 파생값으로 계산하게 바꿨다
+- 어떻게 고쳤나
+  - pnpm exec tsc -b, pnpm lint 통과 확인. 다른 세션(loading-error-empty)이 같은 파일
+    (Board/index.tsx, CandidateList/index.tsx)을 동시에 편집 중이라 겹치지 않는 파일부터
+    먼저 끝내고 그 세션 커밋이 랜딩한 뒤 마저 연결했다
+  - 시간 부족으로 자동 테스트는 아직 작성하지 못했다 - 수동 검증(Tab/화살표 키/Esc)만 확인

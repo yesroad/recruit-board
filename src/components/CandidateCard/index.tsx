@@ -12,6 +12,8 @@ interface CandidateCardProps {
   pendingStage?: Stage
   onMove: (candidate: Candidate, toStage: Stage) => void
   onSelect: (candidate: Candidate) => void
+  isActive?: boolean
+  triggerRef?: (el: HTMLButtonElement | null) => void
 }
 
 export const CandidateCard = memo(function CandidateCard({
@@ -19,9 +21,12 @@ export const CandidateCard = memo(function CandidateCard({
   pendingStage,
   onMove,
   onSelect,
+  isActive = true,
+  triggerRef,
 }: CandidateCardProps) {
   const { name, role, stage, appliedAt } = candidate
   const { prev, next, canReject, isMoving } = useCandidateCard(candidate, pendingStage)
+  const tabIndex = isActive ? 0 : -1
 
   return (
     <article
@@ -37,7 +42,9 @@ export const CandidateCard = memo(function CandidateCard({
       )}
 
       <button
+        ref={triggerRef}
         type="button"
+        tabIndex={tabIndex}
         data-detail-trigger
         aria-label={`${name}님 상세 보기`}
         onClick={() => onSelect(candidate)}
@@ -54,7 +61,14 @@ export const CandidateCard = memo(function CandidateCard({
         </span>
       </button>
 
-      <MoveButtons name={name} prev={prev} next={next} canReject={canReject} onMove={(toStage) => onMove(candidate, toStage)} />
+      <MoveButtons
+        name={name}
+        prev={prev}
+        next={next}
+        canReject={canReject}
+        onMove={(toStage) => onMove(candidate, toStage)}
+        tabIndex={tabIndex}
+      />
     </article>
   )
 })

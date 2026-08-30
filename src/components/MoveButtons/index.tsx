@@ -7,12 +7,13 @@ interface MoveButtonsProps {
   next?: Stage
   canReject: boolean
   onMove: (toStage: Stage) => void
+  tabIndex?: number
 }
 
 const BUTTON_CLASS =
   'flex h-8 flex-1 items-center justify-center gap-1 rounded-md border border-slate-200 bg-slate-100 text-xs text-slate-500 transition hover:border-accent hover:bg-accent hover:text-white'
 
-export function MoveButtons({ name, prev, next, canReject, onMove }: MoveButtonsProps) {
+export function MoveButtons({ name, prev, next, canReject, onMove, tabIndex }: MoveButtonsProps) {
   // "면접 →" 만으로는 어느 카드의 버튼인지 알 수 없다
   const label = (target: Stage) => `${name}님을 ${STAGE_LABELS[target]}(으)로 이동`
 
@@ -21,6 +22,7 @@ export function MoveButtons({ name, prev, next, canReject, onMove }: MoveButtons
       {prev && (
         <button
           type="button"
+          tabIndex={tabIndex}
           className={BUTTON_CLASS}
           aria-label={label(prev)}
           onClick={() => onMove(prev)}
@@ -31,6 +33,7 @@ export function MoveButtons({ name, prev, next, canReject, onMove }: MoveButtons
       {next && (
         <button
           type="button"
+          tabIndex={tabIndex}
           className={BUTTON_CLASS}
           aria-label={label(next)}
           onClick={() => onMove(next)}
@@ -41,6 +44,7 @@ export function MoveButtons({ name, prev, next, canReject, onMove }: MoveButtons
       {canReject && (
         <button
           type="button"
+          tabIndex={tabIndex}
           className={BUTTON_CLASS}
           aria-label={label('rejected')}
           onClick={() => onMove('rejected')}

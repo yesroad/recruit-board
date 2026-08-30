@@ -3,6 +3,8 @@ import type { Candidate, Stage } from '@/types/candidate'
 
 import { ColumnEmpty } from '../ColumnEmpty'
 
+import { useCandidateList } from './useCandidateList'
+
 interface CandidateListProps {
   candidates: Candidate[]
   pending: Record<string, Stage>
@@ -18,6 +20,8 @@ export function CandidateList({
   onSelect,
   isFiltered,
 }: CandidateListProps) {
+  const { activeId, getTriggerRef, handleKeyDown } = useCandidateList(candidates)
+
   if (candidates.length === 0) {
     return (
       <div className="flex min-h-0 flex-1 items-center justify-center p-2.5">
@@ -27,7 +31,11 @@ export function CandidateList({
   }
 
   return (
-    <ul role="list" className="flex min-h-0 flex-col gap-2 overflow-y-auto p-2.5">
+    <ul
+      role="list"
+      onKeyDown={handleKeyDown}
+      className="flex min-h-0 flex-col gap-2 overflow-y-auto p-2.5"
+    >
       {candidates.map((candidate, index) => (
         <li key={candidate.id} data-index={index} data-candidate-id={candidate.id}>
           <CandidateCard
@@ -35,6 +43,8 @@ export function CandidateList({
             pendingStage={pending[candidate.id]}
             onMove={onMove}
             onSelect={onSelect}
+            isActive={candidate.id === activeId}
+            triggerRef={getTriggerRef(candidate.id)}
           />
         </li>
       ))}

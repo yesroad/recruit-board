@@ -43,25 +43,27 @@ function BoardContent() {
 
   return (
     <>
-      <SearchFilter {...filter} />
+      <div id="board-root" inert={Boolean(selected)} className="flex min-h-0 flex-1 flex-col gap-4">
+        <SearchFilter {...filter} />
 
-      {allFilteredOut ? (
-        <BoardEmptyFilter query={filter.query} onReset={resetFilter} />
-      ) : (
-        <div className="flex min-h-0 flex-1 gap-3 overflow-x-auto pb-2">
-          {STAGES.map((stage) => (
-            <BoardColumn
-              key={stage}
-              stage={stage}
-              candidates={columns[stage]}
-              pending={pending}
-              onMove={handleMove}
-              onSelect={openDetail}
-              isFiltered={isFiltered}
-            />
-          ))}
-        </div>
-      )}
+        {allFilteredOut ? (
+          <BoardEmptyFilter query={filter.query} onReset={resetFilter} />
+        ) : (
+          <div className="flex min-h-0 flex-1 gap-3 overflow-x-auto pb-2">
+            {STAGES.map((stage) => (
+              <BoardColumn
+                key={stage}
+                stage={stage}
+                candidates={columns[stage]}
+                pending={pending}
+                onMove={handleMove}
+                onSelect={openDetail}
+                isFiltered={isFiltered}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
       {selected && (
         <DetailPanel
