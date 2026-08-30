@@ -24,3 +24,18 @@ export const STAGE_BADGE_CLASS: Record<Stage, string> = {
   hired: 'bg-stage-hired-soft text-stage-hired-strong',
   rejected: 'bg-stage-rejected-soft text-stage-rejected-strong',
 }
+
+// STAGES 는 컬럼 나열 순서다. 실제 파이프라인은 아래 4단계이고 불합격은 어디서든 빠지는 분기다.
+const PIPELINE = ['screening', 'interview', 'offer', 'hired'] as const satisfies Stage[]
+
+export function adjacentStages(stage: Stage): {
+  prev?: Stage
+  next?: Stage
+  canReject: boolean
+} {
+  if (stage === 'rejected') return { prev: 'screening', canReject: false }
+
+  const index = PIPELINE.indexOf(stage as (typeof PIPELINE)[number])
+
+  return { prev: PIPELINE[index - 1], next: PIPELINE[index + 1], canReject: true }
+}

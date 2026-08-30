@@ -1,6 +1,6 @@
 import { STAGES } from '@/types/candidate'
 
-import { BoardColumn } from './components'
+import { BoardColumn } from '../BoardColumn'
 import { useBoard } from './useBoard'
 
 export function Board() {
