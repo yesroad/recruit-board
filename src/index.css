@@ -1,3 +1,25 @@
+@import "tailwindcss";
+
+@theme {
+  /* 단계별 색 — 컬럼 헤더와 카드 배지가 이 한 곳을 본다 */
+  --color-stage-screening: oklch(0.62 0.14 254);
+  --color-stage-interview: oklch(0.65 0.15 305);
+  --color-stage-offer: oklch(0.68 0.14 70);
+  --color-stage-hired: oklch(0.62 0.15 152);
+  --color-stage-rejected: oklch(0.58 0.02 280);
+
+  /* 단계 색과 겹치지 않도록 채도를 높였다. 어느 컬럼 위에서도 링이 구분돼야 한다 */
+  --color-focus: oklch(0.55 0.22 265);
+}
+
+@layer base {
+  /* 키보드 조작이 필수 요건이다. 포커스가 안 보이면 그 경로는 없는 것과 같다 */
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+}
+
 :root {
   --text: #6b6375;
   --text-h: #08060d;
