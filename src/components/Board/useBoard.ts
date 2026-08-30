@@ -1,5 +1,12 @@
-import { useCallback, useMemo, useState } from "react";
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
+import type { SearchFilterProps } from "@/components/SearchFilter";
 import { STAGE_LABELS } from "@/constants/candidate";
 import { useMoveCandidateStage } from "@/queries/candidate/mutations";
 import { useGetCandidateList } from "@/queries/candidate/queries";
@@ -14,9 +21,47 @@ interface UseBoardReturn {
   columns: Record<Stage, Candidate[]>;
   pending: Record<string, Stage>;
   feedback: MoveFeedback | null;
+  filter: SearchFilterProps;
   isPending: boolean;
   isError: boolean;
   handleMove: (candidate: Candidate, toStage: Stage) => void;
+}
+
+const DEBOUNCE_MS = 200;
+
+// 디바운스는 무거운 렌더 횟수를 줄이고, useDeferredValue 는 그 한 번이 다음 입력을 막지 않게 한다.
+function useDebouncedValue<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+
+  return debounced;
+}
+
+// 필터가 비어 있으면 원본을 그대로 돌려준다. 매 렌더 새 배열을 만들지 않기 위함이다.
+function filterCandidates(
+  candidates: Candidate[],
+  query: string,
+  role: string,
+): Candidate[] {
+  const keyword = query.trim().toLowerCase();
+  if (!keyword && !role) return candidates;
+
+  return candidates.filter(
+    (candidate) =>
+      (!role || candidate.role === role) &&
+      (!keyword || candidate.name.toLowerCase().includes(keyword)),
+  );
+}
+
+function collectRoles(candidates: Candidate[]): string[] {
+  return [...new Set(candidates.map(({ role }) => role))].sort((a, b) =>
+    a.localeCompare(b, "ko"),
+  );
 }
 
 function groupByStage(
@@ -39,10 +84,23 @@ export function useBoard(): UseBoardReturn {
 
   const [pending, setPending] = useState<Record<string, Stage>>({});
   const [feedback, setFeedback] = useState<MoveFeedback | null>(null);
+  const [query, setQuery] = useState("");
+  const [role, setRole] = useState("");
+
+  // 객체를 넘기면 렌더마다 새 identity 라 영원히 stale 이다. 원시값 두 개로 나눈다.
+  const deferredQuery = useDeferredValue(useDebouncedValue(query, DEBOUNCE_MS));
+  const deferredRole = useDeferredValue(role);
+
+  const roles = useMemo(() => collectRoles(data ?? []), [data]);
+
+  const visible = useMemo(
+    () => filterCandidates(data ?? [], deferredQuery, deferredRole),
+    [data, deferredQuery, deferredRole],
+  );
 
   const columns = useMemo(
-    () => groupByStage(data ?? [], pending),
-    [data, pending],
+    () => groupByStage(visible, pending),
+    [visible, pending],
   );
 
   const handleMove = useCallback(
@@ -73,5 +131,21 @@ export function useBoard(): UseBoardReturn {
     [mutateAsync],
   );
 
-  return { columns, pending, feedback, isPending, isError, handleMove };
+  return {
+    columns,
+    pending,
+    feedback,
+    isPending,
+    isError,
+    handleMove,
+    filter: {
+      query,
+      role,
+      roles,
+      total: data?.length ?? 0,
+      matched: visible.length,
+      onQueryChange: setQuery,
+      onRoleChange: setRole,
+    },
+  };
 }

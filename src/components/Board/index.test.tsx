@@ -103,4 +103,72 @@ describe('Board', () => {
     expect(findCandidate(first.id)?.stage).toBe('interview')
     expect(findCandidate(second.id)?.stage).toBe('interview')
   })
+
+  it('이름을 입력하면 그 이름을 포함하는 지원자만 남는다', async () => {
+    const all = listCandidates()
+    const { name } = all[0]
+    const expected = all.filter((candidate) => candidate.name.includes(name)).length
+    renderBoard()
+    await findColumns()
+
+    await userEvent.type(screen.getByRole('searchbox', { name: '지원자 이름 검색' }), name)
+
+    await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(expected))
+    expect(screen.getByText(/명 중/)).toHaveTextContent(
+      `${all.length.toLocaleString()}명 중 ${expected.toLocaleString()}명`,
+    )
+  })
+
+  it('직무 칩을 누르면 그 직무의 지원자만 남는다', async () => {
+    const all = listCandidates()
+    const { role } = all[0]
+    const expected = all.filter((candidate) => candidate.role === role).length
+    renderBoard()
+    await findColumns()
+
+    await userEvent.click(screen.getByRole('button', { name: role }))
+
+    await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(expected))
+    expect(screen.getByRole('button', { name: role })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('이름과 직무를 함께 걸면 둘 다 만족하는 지원자만 남는다', async () => {
+    const all = listCandidates()
+    const { name, role } = all[0]
+    const expected = all.filter(
+      (candidate) => candidate.name.includes(name) && candidate.role === role,
+    ).length
+    renderBoard()
+    await findColumns()
+
+    await userEvent.type(screen.getByRole('searchbox', { name: '지원자 이름 검색' }), name)
+    await userEvent.click(screen.getByRole('button', { name: role }))
+
+    await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(expected))
+  })
+
+  it('전체 칩을 누르면 직무 필터가 풀린다', async () => {
+    const all = listCandidates()
+    const { role } = all[0]
+    renderBoard()
+    await findColumns()
+    await userEvent.click(screen.getByRole('button', { name: role }))
+    await waitFor(() => expect(screen.getAllByRole('listitem').length).toBeLessThan(all.length))
+
+    await userEvent.click(screen.getByRole('button', { name: '전체' }))
+
+    await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(all.length))
+  })
+
+  it('직무 선택지는 응답에 있는 직무로 채워진다', async () => {
+    const expected = [...new Set(listCandidates().map(({ role }) => role))].sort((a, b) =>
+      a.localeCompare(b, 'ko'),
+    )
+    renderBoard()
+    await findColumns()
+
+    const chips = within(screen.getByRole('group', { name: '직무 필터' })).getAllByRole('button')
+
+    expect(chips.map((chip) => chip.textContent)).toEqual(['전체', ...expected])
+  })
 })

@@ -1,3 +1,5 @@
+import { memo } from 'react'
+
 import { formatDate } from '@/lib/format'
 import type { Candidate, Stage } from '@/types/candidate'
 
@@ -10,7 +12,11 @@ interface CandidateCardProps {
   onMove: (candidate: Candidate, toStage: Stage) => void
 }
 
-export function CandidateCard({ candidate, pendingStage, onMove }: CandidateCardProps) {
+export const CandidateCard = memo(function CandidateCard({
+  candidate,
+  pendingStage,
+  onMove,
+}: CandidateCardProps) {
   const { name, role, stage, appliedAt } = candidate
   const { prev, next, canReject, isMoving } = useCandidateCard(candidate, pendingStage)
 
@@ -41,4 +47,4 @@ export function CandidateCard({ candidate, pendingStage, onMove }: CandidateCard
       <MoveButtons name={name} prev={prev} next={next} canReject={canReject} onMove={(toStage) => onMove(candidate, toStage)} />
     </article>
   )
-}
+})

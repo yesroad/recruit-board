@@ -1,3 +1,5 @@
+import { memo } from 'react'
+
 import type { Candidate, Stage } from '@/types/candidate'
 
 import { CandidateList, ColumnHeader } from './components'
@@ -9,7 +11,13 @@ interface BoardColumnProps {
   onMove: (candidate: Candidate, toStage: Stage) => void
 }
 
-export function BoardColumn({ stage, candidates, pending, onMove }: BoardColumnProps) {
+// 입력 한 번이 카드 1,000개 재조정으로 번지지 않도록 여기서 끊는다.
+export const BoardColumn = memo(function BoardColumn({
+  stage,
+  candidates,
+  pending,
+  onMove,
+}: BoardColumnProps) {
   const titleId = `column-${stage}-title`
 
   return (
@@ -22,4 +30,4 @@ export function BoardColumn({ stage, candidates, pending, onMove }: BoardColumnP
       <CandidateList candidates={candidates} pending={pending} onMove={onMove} />
     </section>
   )
-}
+})
