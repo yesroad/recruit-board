@@ -229,8 +229,9 @@ describe('Board', () => {
 
     await userEvent.click(screen.getByRole('button', { name: `${target.name}님 상세 보기` }))
     const dialog = await screen.findByRole('dialog')
+    const nameInDialog = await within(dialog).findByText(target.name)
 
-    await userEvent.click(within(dialog).getByText(target.name))
+    await userEvent.click(nameInDialog)
     expect(screen.getByRole('dialog')).toBeInTheDocument()
 
     await userEvent.click(document.body)
@@ -245,9 +246,10 @@ describe('Board', () => {
 
     await userEvent.click(screen.getByRole('button', { name: `${target.name}님 상세 보기` }))
     const dialog = await screen.findByRole('dialog')
-    await userEvent.click(
-      within(dialog).getByRole('button', { name: `${target.name}님을 면접(으)로 이동` }),
-    )
+    const moveButton = await within(dialog).findByRole('button', {
+      name: `${target.name}님을 면접(으)로 이동`,
+    })
+    await userEvent.click(moveButton)
 
     await waitFor(() => expect(findCandidate(target.id)?.stage).toBe('interview'))
     await waitFor(() =>
@@ -273,7 +275,66 @@ describe('Board', () => {
     await userEvent.click(screen.getByRole('button', { name: `${target.name}님 상세 보기` }))
 
     const dialog = await screen.findByRole('dialog')
-    expect(within(dialog).getByRole('alert')).toHaveTextContent('불러오지 못했습니다')
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent('불러오지 못했습니다')
     expect(within(dialog).getByRole('button', { name: '다시 시도' })).toBeInTheDocument()
+  })
+
+  it('로딩 중에는 스켈레톤이 보이고 컬럼은 아직 없다', async () => {
+    setConfig({ minDelay: 300, maxDelay: 300 })
+    renderBoard()
+
+    expect(screen.getByText('지원자 목록을 불러오는 중입니다')).toBeInTheDocument()
+    expect(screen.queryAllByRole('region')).toHaveLength(0)
+
+    await findColumns()
+  })
+
+  it('목록 조회가 실패하면 에러와 재시도 버튼이 뜨고, 재시도하면 복구된다', async () => {
+    setConfig({ fetchFailRate: 1 })
+    renderBoard(new QueryClient({ defaultOptions: { queries: { retry: 0 } } }))
+
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('불러오지 못했습니다'))
+
+    setConfig({ fetchFailRate: 0 })
+    await userEvent.click(screen.getByRole('button', { name: '다시 시도' }))
+
+    await findColumns()
+  })
+
+  it('필터로 전체가 걸러지면 컬럼 대신 안내와 초기화 버튼이 뜬다', async () => {
+    renderBoard()
+    await findColumns()
+
+    await userEvent.type(screen.getByRole('searchbox', { name: '지원자 이름 검색' }), 'zzzz')
+
+    await waitFor(
+      () => expect(screen.getByRole('button', { name: '필터 초기화' })).toBeInTheDocument(),
+      { timeout: 3000 },
+    )
+    expect(screen.queryAllByRole('region')).toHaveLength(0)
+
+    await userEvent.click(screen.getByRole('button', { name: '필터 초기화' }))
+
+    await findColumns()
+  })
+
+  it('필터가 걸렸는데 일부 컬럼만 비면 그 컬럼에만 안내가 뜬다', async () => {
+    const all = listCandidates()
+    const nameCounts = new Map<string, number>()
+    all.forEach(({ name }) => nameCounts.set(name, (nameCounts.get(name) ?? 0) + 1))
+    // 이름이 유일한 지원자를 검색하면 전체 결과가 정확히 1건이라, 그 1건이 속한
+    // 컬럼을 뺀 나머지 4개 컬럼은 반드시 "필터에 맞는 지원자 없음"이 된다.
+    const target = all.find((candidate) => nameCounts.get(candidate.name) === 1)!
+
+    renderBoard()
+    const columns = await findColumns()
+
+    await userEvent.type(screen.getByRole('searchbox', { name: '지원자 이름 검색' }), target.name)
+
+    await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(1))
+    const emptyColumns = columns.filter((column) =>
+      within(column).queryByText('필터에 맞는 지원자 없음'),
+    )
+    expect(emptyColumns).toHaveLength(STAGES.length - 1)
   })
 })

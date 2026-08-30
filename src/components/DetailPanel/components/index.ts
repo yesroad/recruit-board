@@ -1,3 +1,5 @@
 export { DetailField } from './DetailField'
+export { DetailPanelError } from './DetailPanelError'
+export { DetailPanelSkeleton } from './DetailPanelSkeleton'
 export { PanelBody } from './PanelBody'
 export { PanelHeader } from './PanelHeader'

@@ -23,11 +23,11 @@ interface UseBoardReturn {
   feedback: MoveFeedback | null;
   filter: SearchFilterProps;
   selected: Candidate | null;
-  isPending: boolean;
-  isError: boolean;
+  isFiltered: boolean;
   handleMove: (candidate: Candidate, toStage: Stage) => void;
   openDetail: (candidate: Candidate) => void;
   closeDetail: () => void;
+  resetFilter: () => void;
 }
 
 const DEBOUNCE_MS = 200;
@@ -82,7 +82,7 @@ function groupByStage(
 }
 
 export function useBoard(): UseBoardReturn {
-  const { data, isPending, isError } = useGetCandidateList();
+  const { data } = useGetCandidateList();
   const { mutateAsync } = useMoveCandidateStage();
 
   const [pending, setPending] = useState<Record<string, Stage>>({});
@@ -94,14 +94,20 @@ export function useBoard(): UseBoardReturn {
   const openDetail = useCallback((candidate: Candidate) => setSelected(candidate), []);
   const closeDetail = useCallback(() => setSelected(null), []);
 
+  const resetFilter = useCallback(() => {
+    setQuery("");
+    setRole("");
+  }, []);
+
   // 객체를 넘기면 렌더마다 새 identity 라 영원히 stale 이다. 원시값 두 개로 나눈다.
   const deferredQuery = useDeferredValue(useDebouncedValue(query, DEBOUNCE_MS));
   const deferredRole = useDeferredValue(role);
+  const isFiltered = deferredQuery.trim() !== "" || deferredRole !== "";
 
-  const roles = useMemo(() => collectRoles(data ?? []), [data]);
+  const roles = useMemo(() => collectRoles(data), [data]);
 
   const visible = useMemo(
-    () => filterCandidates(data ?? [], deferredQuery, deferredRole),
+    () => filterCandidates(data, deferredQuery, deferredRole),
     [data, deferredQuery, deferredRole],
   );
 
@@ -143,16 +149,16 @@ export function useBoard(): UseBoardReturn {
     pending,
     feedback,
     selected,
-    isPending,
-    isError,
+    isFiltered,
     handleMove,
     openDetail,
     closeDetail,
+    resetFilter,
     filter: {
       query,
       role,
       roles,
-      total: data?.length ?? 0,
+      total: data.length,
       matched: visible.length,
       onQueryChange: setQuery,
       onRoleChange: setRole,

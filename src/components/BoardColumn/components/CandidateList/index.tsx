@@ -1,14 +1,31 @@
 import { CandidateCard } from '@/components/CandidateCard'
 import type { Candidate, Stage } from '@/types/candidate'
 
+import { ColumnEmpty } from '../ColumnEmpty'
+
 interface CandidateListProps {
   candidates: Candidate[]
   pending: Record<string, Stage>
   onMove: (candidate: Candidate, toStage: Stage) => void
   onSelect: (candidate: Candidate) => void
+  isFiltered: boolean
 }
 
-export function CandidateList({ candidates, pending, onMove, onSelect }: CandidateListProps) {
+export function CandidateList({
+  candidates,
+  pending,
+  onMove,
+  onSelect,
+  isFiltered,
+}: CandidateListProps) {
+  if (candidates.length === 0) {
+    return (
+      <div className="flex min-h-0 flex-1 items-center justify-center p-2.5">
+        <ColumnEmpty isFiltered={isFiltered} />
+      </div>
+    )
+  }
+
   return (
     <ul role="list" className="flex min-h-0 flex-col gap-2 overflow-y-auto p-2.5">
       {candidates.map((candidate, index) => (

@@ -10,6 +10,7 @@ interface BoardColumnProps {
   pending: Record<string, Stage>
   onMove: (candidate: Candidate, toStage: Stage) => void
   onSelect: (candidate: Candidate) => void
+  isFiltered: boolean
 }
 
 export const BoardColumn = memo(function BoardColumn({
@@ -18,6 +19,7 @@ export const BoardColumn = memo(function BoardColumn({
   pending,
   onMove,
   onSelect,
+  isFiltered,
 }: BoardColumnProps) {
   const titleId = `column-${stage}-title`
 
@@ -28,7 +30,13 @@ export const BoardColumn = memo(function BoardColumn({
       className="flex min-h-0 w-65 shrink-0 flex-col rounded-[10px] border border-slate-200 bg-slate-100"
     >
       <ColumnHeader stage={stage} titleId={titleId} count={candidates.length} />
-      <CandidateList candidates={candidates} pending={pending} onMove={onMove} onSelect={onSelect} />
+      <CandidateList
+        candidates={candidates}
+        pending={pending}
+        onMove={onMove}
+        onSelect={onSelect}
+        isFiltered={isFiltered}
+      />
     </section>
   )
 })

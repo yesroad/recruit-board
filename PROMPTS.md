@@ -638,3 +638,64 @@ useClickoutside 훅 만들어서 src/hooks 에 적용하고 외부 클릭시 사
 - 어떻게 고쳤나
   - 없음
 
+
+---
+
+## [loading-error-empty] 로딩/에러/빈 상태 3종
+
+### 프롬프트 1
+
+```
+loading-error-empty 계획 생성하고 진행해
+```
+
+### AI 출력 요지
+
+보드 레벨에서 "데이터 0건"(`filter.total === 0`)과 "필터 결과 0건"(`filter.matched === 0`)을
+구분하고, 컬럼 레벨은 필터 활성 여부로 문구만 다른 빈 상태를 뒀다. `BoardSkeleton`·`BoardError`·
+`BoardEmptyFilter`·`ColumnEmpty` 4개를 새로 만들고 `useBoard`에 `refetch`/`isFiltered`/`resetFilter`를
+추가했다. 공유 `states/` 폴더 대신 각자 소유 컴포넌트 하위(`Board/components`, `BoardColumn/components`)에 뒀다.
+
+### 리뷰 / 검증
+
+- 무엇이 문제였나
+  - 새로 추가한 테스트 2개가 실패했다. 검색어 8자에 `waitFor` 기본 타임아웃(1000ms)이 부족했고,
+  "직무 하나가 5단계 중 일부엔 없다"는 가정이 이 고정 시드에서 성립하지 않아 `.find()!`가 터졌다
+- 어떻게 알아챘나
+  - `pnpm test` 로 직접 확인. isolate 테스트로 떼어내 타임아웃을 늘려보니 로직이 아니라
+  타이밍 문제임을 확인했다
+- 채택 / 수정 / 기각
+  - 수정. 두 테스트 모두 고쳤다
+- 어떻게 고쳤나
+  - 검색어를 4자(`zzzz`)로 줄이고 타임아웃을 3000ms로 늘렸다
+  - 직무 분포 가정을 버리고, 이름이 유일한 지원자를 검색해 결과가 정확히 1건이 되도록 바꿨다
+
+---
+
+### 프롬프트 2
+
+```
+스켈레톤 사용하는거 supense 로 수정해
+```
+
+### AI 출력 요지
+
+`isPending`/`isError` 수동 분기 대신 `useSuspenseQuery` + `Suspense` + `ErrorBoundary` 조합으로
+전환. `useSuspenseQuery`는 `enabled`를 지원하지 않아 `useGetCandidateDetail`의 `id: string | null`
+시그니처를 `string`으로 좁혔다 - 유일한 호출부가 항상 유효한 문자열만 넘기는 것을 확인했다.
+
+### 리뷰 / 검증
+
+- 무엇이 문제였나
+  - `DetailPanel`에 전용 Suspense 경계가 없어 상세 조회가 상위 `Board`의 경계까지 올라갔다.
+  카드를 클릭해 상세를 열 때마다 보드 전체(컬럼 5개)가 `BoardSkeleton`으로 바뀌었다
+- 어떻게 알아챘나
+  - 브라우저에서 직접 확인
+- 채택 / 수정 / 기각
+  - 수정. `DetailPanel`에 자기 전용 `QueryErrorResetBoundary > ErrorBoundary > Suspense` 경계를 추가했다
+- 어떻게 고쳤나
+  - 실제 조회와 렌더를 `DetailPanelContent`로 분리하고 그 위에 Suspense 경계를 씌웠다.
+  포커스, 바깥클릭, Esc 처리는 기존대로 `useDetailPanel`에 남겼다
+  - `DetailPanelSkeleton`, `DetailPanelError`를 신설해 로딩, 에러 상태에서도 닫기(X) 버튼이 보이게 했다
+  - `PanelHeader`, `PanelBody`의 `isPending`, `isError` prop을 제거했다. Suspense와 ErrorBoundary가
+  분기를 대신해 `candidate`가 항상 보장된 값으로 들어온다

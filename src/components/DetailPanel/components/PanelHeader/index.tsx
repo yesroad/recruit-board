@@ -2,19 +2,18 @@ import type { Candidate } from '@/types/candidate'
 
 interface PanelHeaderProps {
   titleId: string
-  candidate?: Candidate
-  isPending: boolean
+  candidate: Candidate
   onClose: () => void
 }
 
-export function PanelHeader({ titleId, candidate, isPending, onClose }: PanelHeaderProps) {
+export function PanelHeader({ titleId, candidate, onClose }: PanelHeaderProps) {
   return (
     <div className="flex items-start gap-3 border-b border-slate-200 p-4">
       <div>
         <div id={titleId} className="text-[17px] font-bold">
-          {isPending ? '불러오는 중' : (candidate?.name ?? '지원자를 찾을 수 없습니다')}
+          {candidate.name}
         </div>
-        {candidate && <div className="mt-0.5 text-[13px] text-slate-500">{candidate.role}</div>}
+        <div className="mt-0.5 text-[13px] text-slate-500">{candidate.role}</div>
       </div>
       <button
         type="button"

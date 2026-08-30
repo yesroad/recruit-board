@@ -1,4 +1,4 @@
-import { queryOptions, useQuery } from '@tanstack/react-query'
+import { queryOptions, useSuspenseQuery } from '@tanstack/react-query'
 
 import { candidateService } from '@/services/api/candidate'
 
@@ -22,12 +22,9 @@ export const candidateQueries = {
 }
 
 export function useGetCandidateList() {
-  return useQuery(candidateQueries.getList())
+  return useSuspenseQuery(candidateQueries.getList())
 }
 
-export function useGetCandidateDetail(id: string | null) {
-  return useQuery({
-    ...candidateQueries.getDetail(id ?? ''),
-    enabled: Boolean(id),
-  })
+export function useGetCandidateDetail(id: string) {
+  return useSuspenseQuery(candidateQueries.getDetail(id))
 }

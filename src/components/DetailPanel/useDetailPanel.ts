@@ -1,10 +1,13 @@
 import { useEffect, useRef } from 'react'
 
 import { useClickOutside } from '@/hooks/useClickOutside'
-import { useGetCandidateDetail } from '@/queries/candidate/queries'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
+// 패널 껍데기(포커스·바깥 클릭·Esc·닫을 때 포커스 복귀)만 다룬다.
+// 지원자 조회는 DetailPanelContent 안에서 useSuspenseQuery 로 한다 - 로딩·에러가
+// 이 훅이 아니라 그 컴포넌트를 감싼 Suspense/ErrorBoundary 로 올라가야 패널 밖(보드)이
+// 함께 무너지지 않는다.
 export function useDetailPanel(candidateId: string, onClose: () => void) {
-  const { data, isPending, isError, refetch } = useGetCandidateDetail(candidateId)
   const panelRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
@@ -12,6 +15,7 @@ export function useDetailPanel(candidateId: string, onClose: () => void) {
   }, [])
 
   useClickOutside(panelRef, onClose)
+  useFocusTrap(panelRef)
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -34,5 +38,5 @@ export function useDetailPanel(candidateId: string, onClose: () => void) {
     [candidateId],
   )
 
-  return { candidate: data, isPending, isError, refetch, panelRef }
+  return { panelRef }
 }
