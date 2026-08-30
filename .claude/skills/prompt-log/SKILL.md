@@ -4,7 +4,6 @@ description: "방금 완료한 기능의 프롬프트·AI 출력·검증 내용�
 user-invocable: true
 allowed-tools: Agent, Bash, Read, Write, Edit
 ---
-
 # Prompt Log Skill
 
 2인 팀을 순차로 호출해 루트 `PROMPTS.md` 의 기능별 섹션을 만든다.
@@ -15,24 +14,29 @@ allowed-tools: Agent, Bash, Read, Write, Edit
 ## Workflow
 
 1. **Precondition.**
-   `git status --porcelain` 을 실행한다. 변경이 하나도 없으면 "기록할 작업 없음" 안내 후 종료.
-   **스테이지 여부는 보지 않는다** — 기록이 먼저고 `git add` 는 그 뒤다.
-
+ `git status --porcelain` 을 실행한다. 변경이 하나도 없으면 "기록할 작업 없음" 안내 후 종료.
+ **스테이지 여부는 보지 않는다** — 기록이 먼저고 `git add` 는 그 뒤다.
 2. **author 호출.**
-   `prompt-log-author` 에이전트를 Agent 도구로 호출. 출력은 `.claude/_workspace/prompt-draft.md`.
-
+ `prompt-log-author` 에이전트를 Agent 도구로 호출. 출력은 `.claude/_workspace/prompt-draft.md`.
 3. **reviewer 호출.**
-   `prompt-log-reviewer` 에이전트를 Agent 도구로 호출. 출력은 `.claude/_workspace/prompt-review.md`.
-
+ `prompt-log-reviewer` 에이전트를 Agent 도구로 호출. 출력은 `.claude/_workspace/prompt-review.md`.
 4. **판정 분기.**
-   - `PASS` — 5번으로.
-   - `REDO` — reviewer 수정 지시를 프롬프트에 포함해 author 재호출 (최대 2회).
-   - `PENDING` — 인터뷰로 진입.
-
-5. **`PROMPTS.md` 에 append.**
-   파일이 없으면 루트에 만들고, 있으면 마지막에 추가한다. **기존 섹션은 수정하지 않는다.**
-
+  - `PASS` — 5번으로.
+  - `REDO` — reviewer 수정 지시를 프롬프트에 포함해 author 재호출 (최대 2회).
+  - `PENDING` — 인터뷰로 진입.
+5. `**PROMPTS.md` 에 append.**
+ 파일이 없으면 루트에 만들고, 있으면 마지막에 추가한다. **기존 섹션은 수정하지 않는다.**
 6. **마무리.** 요약을 제시하고 "이제 `/commit-msg`" 를 안내한다.
+
+### 주의사항
+
+[q.md](http://q.md) 관련 내용은 넣지 않는다.
+
+다른 기존 프롬포트 내용과 같이 간결하게 한다. 읽는사람은 코드보다는 과정과 내용이 중요하다.
+
+— 는 - 로 대체, · 은 사용하지 않는다
+
+각 프롬포트 별로 본문 내용은 나눈다.
 
 ## 인터뷰
 

@@ -27,6 +27,16 @@ a11y-keyboard  race-condition  undo  virtualization
 기능이 아닌 변경은 scope를 생략한다 — `chore:` `docs:`.
 진행하며 쪼개거나 합칠 수 있다. 바꿨으면 이 목록도 함께 고친다.
 
+## 컴포넌트 구조
+
+```
+components/<Name>/index.tsx        컴포넌트. named export
+components/<Name>/use<Name>.ts     상태·쿼리 로직. 표현과 분리한다
+components/<Name>/components/      그 컴포넌트 전용 하위 파트. 무거워지면 그때 쪼갠다
+```
+
+형제 컴포넌트는 `components/` 최상위에 둔다. 남의 하위로 넣지 않는다.
+
 ## 작업 루프
 
 1. 구현
