@@ -5,14 +5,20 @@ interface CandidateListProps {
   candidates: Candidate[]
   pending: Record<string, Stage>
   onMove: (candidate: Candidate, toStage: Stage) => void
+  onSelect: (candidate: Candidate) => void
 }
 
-export function CandidateList({ candidates, pending, onMove }: CandidateListProps) {
+export function CandidateList({ candidates, pending, onMove, onSelect }: CandidateListProps) {
   return (
     <ul role="list" className="flex min-h-0 flex-col gap-2 overflow-y-auto p-2.5">
       {candidates.map((candidate, index) => (
         <li key={candidate.id} data-index={index} data-candidate-id={candidate.id}>
-          <CandidateCard candidate={candidate} pendingStage={pending[candidate.id]} onMove={onMove} />
+          <CandidateCard
+            candidate={candidate}
+            pendingStage={pending[candidate.id]}
+            onMove={onMove}
+            onSelect={onSelect}
+          />
         </li>
       ))}
     </ul>

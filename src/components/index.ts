@@ -1,4 +1,7 @@
 export { Board } from './Board'
 export { BoardColumn } from './BoardColumn'
 export { CandidateCard } from './CandidateCard'
+export { DetailPanel } from './DetailPanel'
+export { MoveButtons } from './MoveButtons'
 export { SearchFilter } from './SearchFilter'
+export { StageBadge } from './StageBadge'

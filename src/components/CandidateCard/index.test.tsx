@@ -9,7 +9,7 @@ describe('CandidateCard', () => {
   it('이름·직무·지원일·현재 단계를 모두 보여준다', () => {
     const candidate = createSeed(1)[0]
 
-    render(<CandidateCard candidate={candidate} onMove={() => {}} />)
+    render(<CandidateCard candidate={candidate} onMove={() => {}} onSelect={() => {}} />)
 
     expect(screen.getByText(candidate.name)).toBeInTheDocument()
     expect(screen.getByText(candidate.role)).toBeInTheDocument()

@@ -578,3 +578,63 @@ search-filter 작업 계획 생성해줘
 
 ---
 
+
+---
+
+## [detail-panel] 카드 클릭 시 지원자 상세 패널
+
+### 프롬프트 1
+
+```
+detail-panel 작업 진행하자
+```
+
+### AI 출력 요지
+
+승인된 계획대로 `DetailPanel`(index.tsx, useDetailPanel.ts, PanelHeader, PanelBody, DetailField)을 만들고,
+`CandidateCard`의 이름/직무/배지/날짜 영역을 버튼으로 바꿔 열기 트리거로 삼았다. 열 때 포커스를 패널로 옮기고
+Esc로 닫으며(document keydown - 트랩이 아직 없어 컨테이너 핸들러로는 못 잡는다), 닫을 때는 저장해둔 DOM
+노드가 아니라 `data-candidate-id`+`data-detail-trigger`로 다시 찾아 포커스를 되돌린다. 패널에서 이동하면
+그 카드의 `<li>`가 다른 컬럼으로 옮겨가며 DOM이 재생성돼 저장했던 노드가 detached되기 때문이다.
+`MoveButtons`, `StageBadge`는 카드와 패널이 같이 쓰므로 `components/` 최상위로 승격했다.
+
+### 리뷰 / 검증
+
+- 무엇이 문제였나
+  - 새로 추가한 테스트 6개가 전부 같은 줄에서 실패했다. `getByRole` 이 상세 보기 버튼을 2개 이상 찾았다
+- 어떻게 알아챘나
+  - 재현. `pnpm test` 를 돌려 실패를 봤다. 1,000건 시드는 이름 조합이 20x30이라 동명이인이 흔하다는 걸
+  search-filter 계획에서 이미 알고 있었는데 그대로 걸렸다
+- 채택 / 수정 / 기각
+  - 수정. 이름이 유일한 후보만 고르는 `findUniqueTarget` 헬퍼를 테스트 파일에 추가했다.
+  기존 이동 테스트 2개도 같은 위험을 안고 있어 함께 바꿨다
+- 어떻게 고쳤나
+  - 헬퍼 적용 후 34개 전부 통과. 이어서 코드를 그대로 설명만 하는 불필요한 주석을 지적받아 걷어내고,
+  숨은 버그를 막는 주석(pointerdown 이유, detached 노드 이유)만 남겼다
+
+---
+
+### 프롬프트 2
+
+```
+useClickoutside 훅 만들어서 src/hooks 에 적용하고 외부 클릭시 사용해
+```
+
+### AI 출력 요지
+
+`src/hooks/useClickOutside.ts` 신규. `click` 이 아니라 `pointerdown` 을 듣는다 - `click` 은 뗀 지점 기준이라
+패널 안 텍스트를 드래그하다 밖에서 손을 떼면 오작동으로 닫힌다. `useDetailPanel` 에서
+`useClickOutside(panelRef, onClose)` 로 적용했다.
+
+### 리뷰 / 검증
+
+- 무엇이 문제였나
+  - 계획단계에서 누락된 기능
+- 어떻게 알아챘나
+  - 시간 관계상 화면에서 드래그 후 바깥에서 손을 떼는 오작동 여부는 직접 재현하지 못했다.
+  테스트로는 패널 밖 클릭 시 닫힘, 안쪽 클릭 시 유지만 확인했다(통과)
+- 채택 / 수정 / 기각
+  - 채택
+- 어떻게 고쳤나
+  - 없음
+

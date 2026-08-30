@@ -1,3 +1,4 @@
+import { QueryClient } from '@tanstack/react-query'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
@@ -10,10 +11,21 @@ import { createSeed } from '@/mocks/seed'
 import QueryProvider from '@/providers/queryProvider'
 import { createQueryClient } from '@/queries/queryClient'
 import { STAGES } from '@/types/candidate'
+import type { Stage } from '@/types/candidate'
 
-function renderBoard() {
+// 1,000건 시드는 이름이 겹친다(20×30 조합). aria-label이 이름 기반이라
+// 겹치는 이름을 고르면 getByRole 이 여러 개를 찾아 실패한다 - 유일한 이름만 고른다.
+function findUniqueTarget(stage: Stage) {
+  const all = listCandidates()
+  const counts = new Map<string, number>()
+  all.forEach(({ name }) => counts.set(name, (counts.get(name) ?? 0) + 1))
+
+  return all.find((candidate) => candidate.stage === stage && counts.get(candidate.name) === 1)!
+}
+
+function renderBoard(client: QueryClient = createQueryClient()) {
   return render(
-    <QueryProvider client={createQueryClient()}>
+    <QueryProvider client={client}>
       <Board />
     </QueryProvider>,
   )
@@ -51,7 +63,7 @@ describe('Board', () => {
   })
 
   it('이동에 성공하면 저장소에 남는다', async () => {
-    const target = listCandidates().find(({ stage }) => stage === 'screening')!
+    const target = findUniqueTarget('screening')
     renderBoard()
     await findColumns()
 
@@ -63,7 +75,7 @@ describe('Board', () => {
   })
 
   it('이동에 실패하면 카드가 원래 컬럼으로 돌아가고 실패를 알린다', async () => {
-    const target = listCandidates().find(({ stage }) => stage === 'screening')!
+    const target = findUniqueTarget('screening')
     setConfig({ moveFailRate: 1, minDelay: 50, maxDelay: 50 })
     renderBoard()
     const [screening, interview] = await findColumns()
@@ -170,5 +182,98 @@ describe('Board', () => {
     const chips = within(screen.getByRole('group', { name: '직무 필터' })).getAllByRole('button')
 
     expect(chips.map((chip) => chip.textContent)).toEqual(['전체', ...expected])
+  })
+
+  it('카드의 상세 버튼을 누르면 패널이 열리고 상세 필드가 보인다', async () => {
+    const target = findUniqueTarget('screening')
+    renderBoard()
+    await findColumns()
+
+    await userEvent.click(screen.getByRole('button', { name: `${target.name}님 상세 보기` }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByText(target.email)).toBeInTheDocument()
+    expect(within(dialog).getByText(target.source)).toBeInTheDocument()
+    expect(within(dialog).getByText(target.note)).toBeInTheDocument()
+  })
+
+  it('패널을 열면 포커스가 패널로 간다', async () => {
+    const target = findUniqueTarget('screening')
+    renderBoard()
+    await findColumns()
+
+    await userEvent.click(screen.getByRole('button', { name: `${target.name}님 상세 보기` }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(dialog).toHaveFocus()
+  })
+
+  it('Esc 를 누르면 패널이 닫히고 포커스가 원래 카드로 돌아온다', async () => {
+    const target = findUniqueTarget('screening')
+    renderBoard()
+    await findColumns()
+    const trigger = screen.getByRole('button', { name: `${target.name}님 상세 보기` })
+
+    await userEvent.click(trigger)
+    await screen.findByRole('dialog')
+    await userEvent.keyboard('{Escape}')
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(trigger).toHaveFocus()
+  })
+
+  it('패널 밖을 클릭하면 닫히고, 안을 클릭하면 닫히지 않는다', async () => {
+    const target = findUniqueTarget('screening')
+    renderBoard()
+    await findColumns()
+
+    await userEvent.click(screen.getByRole('button', { name: `${target.name}님 상세 보기` }))
+    const dialog = await screen.findByRole('dialog')
+
+    await userEvent.click(within(dialog).getByText(target.name))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+    await userEvent.click(document.body)
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  })
+
+  it('패널에서 이동하면 카드가 옮겨가고, 닫을 때 옮겨간 자리의 카드로 포커스가 간다', async () => {
+    const target = findUniqueTarget('screening')
+    setConfig({ minDelay: 0, maxDelay: 0 })
+    renderBoard()
+    const [, interviewColumn] = await findColumns()
+
+    await userEvent.click(screen.getByRole('button', { name: `${target.name}님 상세 보기` }))
+    const dialog = await screen.findByRole('dialog')
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: `${target.name}님을 면접(으)로 이동` }),
+    )
+
+    await waitFor(() => expect(findCandidate(target.id)?.stage).toBe('interview'))
+    await waitFor(() =>
+      expect(
+        within(interviewColumn).getByRole('button', { name: `${target.name}님 상세 보기` }),
+      ).toBeInTheDocument(),
+    )
+
+    await userEvent.keyboard('{Escape}')
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(
+      within(interviewColumn).getByRole('button', { name: `${target.name}님 상세 보기` }),
+    ).toHaveFocus()
+  })
+
+  it('상세 조회에 실패하면 에러와 재시도 버튼이 보인다', async () => {
+    const target = findUniqueTarget('screening')
+    renderBoard(new QueryClient({ defaultOptions: { queries: { retry: 0 } } }))
+    await findColumns()
+
+    setConfig({ fetchFailRate: 1 })
+    await userEvent.click(screen.getByRole('button', { name: `${target.name}님 상세 보기` }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByRole('alert')).toHaveTextContent('불러오지 못했습니다')
+    expect(within(dialog).getByRole('button', { name: '다시 시도' })).toBeInTheDocument()
   })
 })

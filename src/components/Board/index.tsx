@@ -1,3 +1,4 @@
+import { DetailPanel } from '@/components/DetailPanel'
 import { SearchFilter } from '@/components/SearchFilter'
 import { STAGES } from '@/types/candidate'
 
@@ -7,7 +8,18 @@ import { MoveFeedback } from './components'
 import { useBoard } from './useBoard'
 
 export function Board() {
-  const { columns, pending, feedback, filter, isPending, isError, handleMove } = useBoard()
+  const {
+    columns,
+    pending,
+    feedback,
+    filter,
+    selected,
+    isPending,
+    isError,
+    handleMove,
+    openDetail,
+    closeDetail,
+  } = useBoard()
 
   if (isPending) return <p className="p-6 text-sm text-slate-500">불러오는 중</p>
   if (isError)
@@ -23,11 +35,25 @@ export function Board() {
 
       <div className="flex min-h-0 flex-1 gap-3 overflow-x-auto pb-2">
         {STAGES.map((stage) => (
-          <BoardColumn key={stage} stage={stage} candidates={columns[stage]}
+          <BoardColumn
+            key={stage}
+            stage={stage}
+            candidates={columns[stage]}
             pending={pending}
-            onMove={handleMove} />
+            onMove={handleMove}
+            onSelect={openDetail}
+          />
         ))}
       </div>
+
+      {selected && (
+        <DetailPanel
+          candidateId={selected.id}
+          pendingStage={pending[selected.id]}
+          onMove={handleMove}
+          onClose={closeDetail}
+        />
+      )}
 
       <MoveFeedback feedback={feedback} />
     </>

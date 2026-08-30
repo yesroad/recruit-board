@@ -22,9 +22,12 @@ interface UseBoardReturn {
   pending: Record<string, Stage>;
   feedback: MoveFeedback | null;
   filter: SearchFilterProps;
+  selected: Candidate | null;
   isPending: boolean;
   isError: boolean;
   handleMove: (candidate: Candidate, toStage: Stage) => void;
+  openDetail: (candidate: Candidate) => void;
+  closeDetail: () => void;
 }
 
 const DEBOUNCE_MS = 200;
@@ -86,6 +89,10 @@ export function useBoard(): UseBoardReturn {
   const [feedback, setFeedback] = useState<MoveFeedback | null>(null);
   const [query, setQuery] = useState("");
   const [role, setRole] = useState("");
+  const [selected, setSelected] = useState<Candidate | null>(null);
+
+  const openDetail = useCallback((candidate: Candidate) => setSelected(candidate), []);
+  const closeDetail = useCallback(() => setSelected(null), []);
 
   // 객체를 넘기면 렌더마다 새 identity 라 영원히 stale 이다. 원시값 두 개로 나눈다.
   const deferredQuery = useDeferredValue(useDebouncedValue(query, DEBOUNCE_MS));
@@ -135,9 +142,12 @@ export function useBoard(): UseBoardReturn {
     columns,
     pending,
     feedback,
+    selected,
     isPending,
     isError,
     handleMove,
+    openDetail,
+    closeDetail,
     filter: {
       query,
       role,
