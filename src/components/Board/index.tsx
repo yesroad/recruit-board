@@ -1,10 +1,12 @@
 import { STAGES } from '@/types/candidate'
 
 import { BoardColumn } from '../BoardColumn'
+
+import { MoveFeedback } from './components'
 import { useBoard } from './useBoard'
 
 export function Board() {
-  const { columns, isPending, isError } = useBoard()
+  const { columns, pending, feedback, isPending, isError, handleMove } = useBoard()
 
   if (isPending) return <p className="p-6 text-sm text-slate-500">불러오는 중</p>
   if (isError)
@@ -15,10 +17,16 @@ export function Board() {
     )
 
   return (
-    <div className="flex min-h-0 flex-1 gap-3 overflow-x-auto pb-2">
-      {STAGES.map((stage) => (
-        <BoardColumn key={stage} stage={stage} candidates={columns[stage]} />
-      ))}
-    </div>
+    <>
+      <div className="flex min-h-0 flex-1 gap-3 overflow-x-auto pb-2">
+        {STAGES.map((stage) => (
+          <BoardColumn key={stage} stage={stage} candidates={columns[stage]}
+            pending={pending}
+            onMove={handleMove} />
+        ))}
+      </div>
+
+      <MoveFeedback feedback={feedback} />
+    </>
   )
 }

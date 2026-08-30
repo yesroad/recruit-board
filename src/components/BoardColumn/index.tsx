@@ -5,9 +5,11 @@ import { CandidateList, ColumnHeader } from './components'
 interface BoardColumnProps {
   stage: Stage
   candidates: Candidate[]
+  pending: Record<string, Stage>
+  onMove: (candidate: Candidate, toStage: Stage) => void
 }
 
-export function BoardColumn({ stage, candidates }: BoardColumnProps) {
+export function BoardColumn({ stage, candidates, pending, onMove }: BoardColumnProps) {
   const titleId = `column-${stage}-title`
 
   return (
@@ -17,7 +19,7 @@ export function BoardColumn({ stage, candidates }: BoardColumnProps) {
       className="flex min-h-0 w-65 shrink-0 flex-col rounded-[10px] border border-slate-200 bg-slate-100"
     >
       <ColumnHeader stage={stage} titleId={titleId} count={candidates.length} />
-      <CandidateList candidates={candidates} />
+      <CandidateList candidates={candidates} pending={pending} onMove={onMove} />
     </section>
   )
 }
