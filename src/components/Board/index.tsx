@@ -1,0 +1,24 @@
+import { STAGES } from '@/types/candidate'
+
+import { BoardColumn } from './components'
+import { useBoard } from './useBoard'
+
+export function Board() {
+  const { columns, isPending, isError } = useBoard()
+
+  if (isPending) return <p className="p-6 text-sm text-slate-500">불러오는 중</p>
+  if (isError)
+    return (
+      <p role="alert" className="p-6 text-sm text-danger">
+        목록을 불러오지 못했습니다
+      </p>
+    )
+
+  return (
+    <div className="flex min-h-0 flex-1 gap-3 overflow-x-auto pb-2">
+      {STAGES.map((stage) => (
+        <BoardColumn key={stage} stage={stage} candidates={columns[stage]} />
+      ))}
+    </div>
+  )
+}
