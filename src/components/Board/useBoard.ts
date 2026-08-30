@@ -3,6 +3,7 @@ import {
   useDeferredValue,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -31,6 +32,9 @@ interface UseBoardReturn {
 }
 
 const DEBOUNCE_MS = 200;
+
+// 카드 하나당 요청 한 개만 떠 있게 하고, 그동안 들어온 의도는 최신 것 하나만 남긴다.
+type MoveSlot = { queued?: Stage };
 
 // 디바운스는 무거운 렌더 횟수를 줄이고, useDeferredValue 는 그 한 번이 다음 입력을 막지 않게 한다.
 function useDebouncedValue<T>(value: T, delay: number): T {
@@ -116,30 +120,57 @@ export function useBoard(): UseBoardReturn {
     [visible, pending],
   );
 
+  const slotsRef = useRef(new Map<string, MoveSlot>());
+
   const handleMove = useCallback(
     (candidate: Candidate, toStage: Stage) => {
       setPending((current) => ({ ...current, [candidate.id]: toStage }));
 
-      void mutateAsync({ id: candidate.id, toStage })
-        .then(() =>
-          setFeedback({
-            kind: "success",
-            message: `${candidate.name}님을 ${STAGE_LABELS[toStage]}(으)로 옮겼습니다`,
-          }),
-        )
-        .catch(() =>
-          setFeedback({
-            kind: "error",
-            message: `${candidate.name}님 이동에 실패해 원래대로 되돌렸습니다`,
-          }),
-        )
-        .finally(() =>
-          setPending((current) =>
-            Object.fromEntries(
-              Object.entries(current).filter(([id]) => id !== candidate.id),
-            ),
+      const slots = slotsRef.current;
+      const running = slots.get(candidate.id);
+
+      // 이미 떠 있으면 요청을 새로 쏘지 않고 최신 의도만 덮어쓴다.
+      // 동시에 두 개를 쏘면 응답이 역순으로 도착해 낡은 값이 서버에 마지막으로 쓰인다.
+      if (running) {
+        running.queued = toStage;
+        return;
+      }
+
+      const slot: MoveSlot = {};
+      slots.set(candidate.id, slot);
+
+      void (async () => {
+        let target = toStage;
+
+        for (;;) {
+          try {
+            await mutateAsync({ id: candidate.id, toStage: target });
+            setFeedback({
+              kind: "success",
+              message: `${candidate.name}님을 ${STAGE_LABELS[target]}(으)로 옮겼습니다`,
+            });
+          } catch {
+            setFeedback({
+              kind: "error",
+              message: `${candidate.name}님 이동에 실패해 원래대로 되돌렸습니다`,
+            });
+          }
+
+          const next = slot.queued;
+          if (next === undefined) break;
+
+          slot.queued = undefined;
+          target = next;
+        }
+
+        // 큐가 빈 뒤에야 오버레이를 걷는다. 중간에 걷으면 아직 뜬 요청이 있는데 화면이 먼저 튄다.
+        slots.delete(candidate.id);
+        setPending((current) =>
+          Object.fromEntries(
+            Object.entries(current).filter(([id]) => id !== candidate.id),
           ),
         );
+      })();
     },
     [mutateAsync],
   );

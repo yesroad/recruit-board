@@ -1,4 +1,5 @@
 import { QueryClient } from '@tanstack/react-query'
+import { HttpResponse, delay, http } from 'msw'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
@@ -6,8 +7,9 @@ import { describe, expect, it } from 'vitest'
 import { Board } from '@/components'
 import { STAGE_LABELS } from '@/constants/candidate'
 import { setConfig } from '@/mocks/config'
-import { findCandidate, listCandidates } from '@/mocks/db'
+import { findCandidate, listCandidates, moveCandidate } from '@/mocks/db'
 import { createSeed } from '@/mocks/seed'
+import { server } from '@/mocks/server'
 import QueryProvider from '@/providers/queryProvider'
 import { createQueryClient } from '@/queries/queryClient'
 import { STAGES } from '@/types/candidate'
@@ -192,7 +194,7 @@ describe('Board', () => {
     await userEvent.click(screen.getByRole('button', { name: `${target.name}님 상세 보기` }))
 
     const dialog = await screen.findByRole('dialog')
-    expect(within(dialog).getByText(target.email)).toBeInTheDocument()
+    expect(await within(dialog).findByText(target.email)).toBeInTheDocument()
     expect(within(dialog).getByText(target.source)).toBeInTheDocument()
     expect(within(dialog).getByText(target.note)).toBeInTheDocument()
   })
@@ -337,4 +339,38 @@ describe('Board', () => {
     )
     expect(emptyColumns).toHaveLength(STAGES.length - 1)
   })
+
+  it('같은 카드를 연속 이동해도 마지막 의도가 서버에 남는다', async () => {
+    const target = findUniqueTarget('screening')
+    const sent: Stage[] = []
+    const settled: Stage[] = []
+
+    // 첫 요청만 아주 느리게 둔다. 요청을 겹쳐 쏘면 느린 첫 응답이 마지막에 도착해
+    // 낡은 값(interview)을 서버에 덮어쓴다.
+    server.use(
+      http.patch('/api/candidates/:id', async ({ params, request }) => {
+        const { toStage } = (await request.json()) as { toStage: Stage }
+        await delay(sent.push(toStage) === 1 ? 2000 : 0)
+        settled.push(toStage)
+
+        return HttpResponse.json(moveCandidate(params.id as string, toStage))
+      }),
+    )
+
+    renderBoard()
+    await findColumns()
+
+    await userEvent.click(
+      screen.getByRole('button', { name: `${target.name}님을 면접(으)로 이동` }),
+    )
+    await userEvent.click(
+      screen.getByRole('button', { name: `${target.name}님을 처우협의(으)로 이동` }),
+    )
+
+    // 두 요청이 모두 끝난 뒤에 본다. 중간에 보면 낡은 응답이 아직 안 와서 거짓 초록이 된다.
+    await waitFor(() => expect(settled).toHaveLength(2), { timeout: 8000 })
+
+    expect(settled).toEqual(['interview', 'offer'])
+    expect(findCandidate(target.id)?.stage).toBe('offer')
+  }, 15000)
 })
