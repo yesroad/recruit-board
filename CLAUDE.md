@@ -18,8 +18,9 @@ React + Vite · Vitest + Testing Library · MSW
 ## 기능 단위명
 
 ```
-mock-api  board-layout  card-list  stage-move  optimistic-update  search-filter
-detail-panel  loading-error-empty  a11y-keyboard  race-condition  undo  virtualization
+mock-api  design-tokens  board-layout  card-list  stage-move
+optimistic-update  search-filter  detail-panel  loading-error-empty
+a11y-keyboard  race-condition  undo  virtualization
 ```
 
 커밋 scope와 PROMPTS.md 섹션 제목이 이 이름으로 일치한다.

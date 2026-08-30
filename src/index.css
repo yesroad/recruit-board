@@ -1,133 +1,82 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
-  /* 단계별 색 — 컬럼 헤더와 카드 배지가 이 한 곳을 본다 */
-  --color-stage-screening: oklch(0.62 0.14 254);
-  --color-stage-interview: oklch(0.65 0.15 305);
-  --color-stage-offer: oklch(0.68 0.14 70);
-  --color-stage-hired: oklch(0.62 0.15 152);
-  --color-stage-rejected: oklch(0.58 0.02 280);
+  /* 한글 본문. 기본 --font-sans에는 한글 폰트 우선순위가 없다 */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Pretendard', 'Apple SD Gothic Neo',
+    system-ui, sans-serif;
 
-  /* 단계 색과 겹치지 않도록 채도를 높였다. 어느 컬럼 위에서도 링이 구분돼야 한다 */
-  --color-focus: oklch(0.55 0.22 265);
+  /* 단계 — 전경. 컬럼 헤더 점과 카드 배지 글자가 이 한 곳을 본다 */
+  --color-stage-screening: var(--color-slate-500);
+  --color-stage-interview: var(--color-blue-500);
+  --color-stage-offer: var(--color-amber-500);
+  --color-stage-hired: var(--color-emerald-500);
+  --color-stage-rejected: var(--color-rose-500);
+
+  /* 단계 — 배지 배경 */
+  --color-stage-screening-soft: var(--color-slate-100);
+  --color-stage-interview-soft: var(--color-blue-50);
+  --color-stage-offer-soft: var(--color-amber-50);
+  --color-stage-hired-soft: var(--color-emerald-50);
+  --color-stage-rejected-soft: var(--color-rose-50);
+
+  /* 상태. focus는 stage-interview(blue-500)보다 어두워 면접 컬럼 위에서도 링이 구분된다 */
+  --color-focus: var(--color-blue-600);
+  --color-accent: var(--color-blue-600);
+  --color-danger: var(--color-rose-600);
+  --color-success: var(--color-emerald-600);
+
+  /* 롤백된 카드. 카드가 제자리로 돌아간 것을 위치 변화만으로는 못 알아챈다 */
+  --animate-shake: shake 0.35s ease-in-out;
+
+  @keyframes shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    25% {
+      transform: translateX(-5px);
+    }
+    75% {
+      transform: translateX(5px);
+    }
+  }
+
+  /* 스켈레톤 위를 지나가는 빛 */
+  --animate-shimmer: shimmer 1.4s infinite;
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
 }
 
 @layer base {
+  body {
+    margin: 0;
+    background-color: var(--color-slate-50);
+    color: var(--color-slate-900);
+    /* 한글은 단어 중간에서 끊지 않는다 */
+    word-break: keep-all;
+    -webkit-font-smoothing: antialiased;
+  }
+
   /* 키보드 조작이 필수 요건이다. 포커스가 안 보이면 그 경로는 없는 것과 같다 */
   :focus-visible {
     outline: 2px solid var(--color-focus);
     outline-offset: 2px;
   }
-}
 
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
-
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation: none !important;
+      transition: none !important;
+    }
   }
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
-
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-}
-
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
 }
