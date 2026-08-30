@@ -246,4 +246,3 @@ git commit
 | --- | --- |
 | `PROMPTS.md` | 기능별 프롬프트와 리뷰 기록 |
 | `DECISIONS.md` | 설계 결정, 기각한 선택지, 세운 가정 |
-| `.claude/docs/mockup.html` | UI 목업. 상태별 카드와 키보드 조작표 |
